@@ -1,2 +1,10 @@
 ---
-# defaults file for ansible_role_pi
+
+pi_architectures:
+  - armv7l
+
+pi_user: pi
+pi_group: pi
+pi_home: /home/pi
+
+pi_lxsession_autostart_path: "{{ pi_home }}/.config/lxsession/LXDE-pi/autostart"

@@ -1,2 +1,8 @@
 ---
-# tasks file for ansible_role_pi
+
+- block:
+    - include: vlc.yml
+
+    - include: sync_share.yml
+
+  when: ansible_architecture in pi_architectures

@@ -1,0 +1,56 @@
+---
+
+- block:
+    - name: create vlc config directories
+      file:
+        path: "{{ pi_home }}/{{ item }}"
+        state: directory
+        mode: "0700"
+        owner: "{{ pi_user }}"
+        group: "{{ pi_group }}"
+      loop:
+        - .config
+        - .config/vlc
+
+    - name: deploy vlcrc
+      template:
+        src: vlc/vlcrc
+        dest: "{{ pi_home }}/.config/vlc/vlcrc"
+        mode: "0600"
+        owner: "{{ pi_user }}"
+        group: "{{ pi_group }}"
+
+    - name: create lxsession config directories
+      file:
+        path: "{{ pi_home }}/{{ item }}"
+        state: directory
+        mode: "0700"
+        owner: "{{ pi_user }}"
+        group: "{{ pi_group }}"
+      loop:
+        - .config
+        - .config/lxsession
+        - .config/lxsession/LXDE-pi
+
+    - name: check lxsession autostart
+      stat:
+        path: "{{ pi_lxsession_autostart_path }}"
+      register: t_pi_lxsession_autostart
+
+    - name: deploy default lxsession autostart
+      copy:
+        src: /etc/xdg/lxsession/LXDE-pi/autostart
+        remote_src: yes
+        dest: "{{ pi_lxsession_autostart_path }}"
+        mode: "0600"
+        owner: "{{ pi_user }}"
+        group: "{{ pi_group }}"
+      when: not t_pi_lxsession_autostart.stat.exists
+
+    - name: add vlc to lxsession autostart
+      lineinfile:
+        path: "{{ pi_lxsession_autostart_path }}"
+        regexp: '^@vlc'
+        line: "@vlc"
+
+  when: ansible_hostname in ['tv', 'music']

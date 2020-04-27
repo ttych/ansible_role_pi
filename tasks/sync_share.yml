@@ -1,5 +1,41 @@
 ---
 
-- name: create sync share workspace
+- block:
+    - name: create sync_share directories
+      file:
+        path: "{{ pi_sync_share_dir }}"
+        state: directory
+        mode: "0700"
+        owner: "{{ pi_user }}"
+        group: "{{ pi_group }}"
 
-- name: deploy sync share
+    - name: deploy sync_share files
+      template:
+        src: "sync_share/{{ item.file }}"
+        dest: "{{ pi_sync_share_dir }}/{{ item.file }}"
+        mode: "{{ item.mode }}"
+        owner: "{{ pi_user }}"
+        group: "{{ pi_group }}"
+      loop:
+        - { file: sync, mode: "0755" }
+
+    - name: check list_to_sync.txt
+      stat:
+        path: "{{ pi_sync_share_list }}"
+      register: t_pi_sync_share_list
+
+    - name: create list_to_sync.txt
+      file:
+        path: "{{ pi_sync_share_list }}"
+        state: touch
+        mode: "0644"
+        owner: "{{ pi_user }}"
+        group: "{{ pi_group }}"
+      when: not t_pi_sync_share_list.stat.exists
+
+    - name: run sync_share from cron
+      cron:
+        name: sync_share
+        special_time: hourly
+        job: "{{ pi_sync_share_sync }}"
+        user: "{{ pi_user }}"

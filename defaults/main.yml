@@ -8,3 +8,9 @@ pi_group: pi
 pi_home: /home/pi
 
 pi_lxsession_autostart_path: "{{ pi_home }}/.config/lxsession/LXDE-pi/autostart"
+
+pi_sync_share_dir: "{{ pi_home }}/sync_share"
+pi_sync_share_sync: "{{ pi_sync_share_dir }}/sync"
+pi_sync_share_list: "{{ pi_sync_share_dir }}/list_to_sync.txt"
+pi_sync_share_from: "/net/share/share"
+pi_sync_share_to: "{{ pi_home }}/Desktop/local"

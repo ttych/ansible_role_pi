@@ -9,6 +9,7 @@ FILES_FROM="${1:-{{ pi_sync_share_list }}}"
 FROM="${2:-{{ pi_sync_share_from }}}"
 TO="${3:-{{ pi_sync_share_to }}}"
 
+LOCK="${SCRIPT_PATH}/.lock"
 
 if [ ! -r "$FILES_FROM" ]; then
     echo >&2 "could not read files list: \"$FILES_FROM\""
@@ -23,4 +24,42 @@ if [ -z "$TO" ]; then
     exit 1
 fi
 
-rsync -av --delete --force -r --files-from="$FILES_FROM" "$FROM" "$TO"
+
+run_sync()
+{
+    rsync -av --delete --force -r --files-from="$FILES_FROM" "$FROM" "$TO"
+}
+
+
+lock_do()
+{
+    lock || return 1
+    "$@"
+    lock_do__status=$?
+    lock_clean
+    return $lock_do__status
+}
+
+lock()
+{
+    lock__process=
+	if [ -r $LOCK ] ; then
+		lock__process=$(cat "$LOCK")
+	fi
+
+	if kill -0 "$lock__process" >/dev/null 2>&1 ; then
+		echo "process $lock__process is already running (locking)."
+		return 1
+	else
+        lock_clean
+		echo $$ > "$LOCK"
+	fi
+}
+
+lock_clean()
+{
+    rm -f "$LOCK"
+}
+
+
+lock_do run_sync
